@@ -17,41 +17,40 @@ config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 30)
 pipeline.start(config)
 
 # Масив для зберігання обраних точок на коробці
-box_points = []
+box_points = []  # зберігатиме чотири точки
 
 def get_box_dimensions(event, x, y, flags, param):
     """
-    Функція для обробки події кліку миші
-    для вибору точок на коробці
+    Обробка події кліку миші для вибору точок на коробці.
+    Перші три точки — кути, четверта — точка на верхній грані.
     """
     global depth_frame, box_points
 
     if event == cv2.EVENT_LBUTTONDOWN:
         distance = depth_frame.get_distance(x, y)
         
-        # Додаємо обрану точку до масиву для коробки
+        # Додаємо обрану точку
         box_points.append((x, y, distance))
         print(f"Точка {len(box_points)} збережена: координати ({x}, {y}), відстань {distance:.3f} метра")
         
-        # Виводимо розміри коробки, коли обрано 3 точки
-        if len(box_points) == 3:
-            # Визначення висоти коробки
-            box_height_m = base_distance_to_floor - box_points[2][2]
-            box_height_cm = box_height_m * 100  # Конвертуємо в см
+        # Обчислюємо розміри коробки після вибору всіх 4 точок
+        if len(box_points) == 4:
+            # Висота коробки
+            box_height_m = base_distance_to_floor - box_points[3][2]
+            box_height_cm = box_height_m * 100
             print(f"Висота коробки: {box_height_cm:.2f} см")
 
-            # Розрахунок довжини та ширини коробки в пікселях
+            # Довжина і ширина коробки
             width_pixels = np.sqrt((box_points[0][0] - box_points[1][0]) ** 2 + (box_points[0][1] - box_points[1][1]) ** 2)
             length_pixels = np.sqrt((box_points[1][0] - box_points[2][0]) ** 2 + (box_points[1][1] - box_points[2][1]) ** 2)
 
-            # Конвертуємо довжину і ширину в сантиметри
             width_cm = width_pixels / pixel_cm_ratio
             length_cm = length_pixels / pixel_cm_ratio
 
             print(f"Ширина коробки: {width_cm:.2f} см")
             print(f"Довжина коробки: {length_cm:.2f} см")
 
-            # Очищуємо обрані точки для нових вимірювань
+            # Очищуємо обрані точки для наступного вимірювання
             box_points = []
 
 try:
