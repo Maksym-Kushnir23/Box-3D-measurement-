@@ -44,9 +44,11 @@ def get_box_dimensions(event, x, y, flags, param):
             width_pixels = np.sqrt((box_points[0][0] - box_points[1][0]) ** 2 + (box_points[0][1] - box_points[1][1]) ** 2)
             length_pixels = np.sqrt((box_points[1][0] - box_points[2][0]) ** 2 + (box_points[1][1] - box_points[2][1]) ** 2)
 
-            width_cm = width_pixels / pixel_cm_ratio
-            length_cm = length_pixels / pixel_cm_ratio
-
+           # width_cm = (width_pixels / pixel_cm_ratio) * (base_distance_to_floor - box_height_m / base_distance_to_floor)
+           # length_cm = (length_pixels / pixel_cm_ratio) * (base_distance_to_floor - box_height_m / base_distance_to_floor)
+            width_cm = (width_pixels / pixel_cm_ratio) * (box_points[3][2] / base_distance_to_floor)
+            length_cm = (length_pixels / pixel_cm_ratio) * (box_points[3][2] / base_distance_to_floor)
+            
             print(f"Ширина коробки: {width_cm:.2f} см")
             print(f"Довжина коробки: {length_cm:.2f} см")
 
@@ -63,8 +65,19 @@ try:
         if not depth_frame or not color_frame:
             continue
 
-        # Конвертація глибинного та кольорового зображень в Numpy arrays
+        # Конвертація кольорового зображення в Numpy array
         color_image = np.asanyarray(color_frame.get_data())
+
+        # Отримуємо розміри зображення
+        height, width, _ = color_image.shape
+        center_x, center_y = width // 2, height // 2
+
+        # Малювання осей
+        cv2.line(color_image, (center_x, 0), (center_x, height), (0, 255, 0), 1)  # Вісь Y
+        cv2.line(color_image, (0, center_y), (width, center_y), (255, 0, 0), 1)  # Вісь X
+
+        # Додавання мітки нуля в центрі
+        cv2.putText(color_image, "(0, 0)", (center_x + 5, center_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         # Відображення кольорового зображення для вибору точок
         cv2.imshow("Measure Box", color_image)

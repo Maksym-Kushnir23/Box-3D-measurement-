@@ -58,8 +58,19 @@ try:
         if not depth_frame or not color_frame:
             continue
 
-        # Конвертація глибинного та кольорового зображень в Numpy arrays
+        # Конвертація кольорового зображення в Numpy arrays
         color_image = np.asanyarray(color_frame.get_data())
+
+        # Отримуємо розміри зображення
+        height, width, _ = color_image.shape
+        center_x, center_y = width // 2, height // 2
+
+        # Малювання осей
+        cv2.line(color_image, (center_x, 0), (center_x, height), (0, 255, 0), 1)  # Вісь Y
+        cv2.line(color_image, (0, center_y), (width, center_y), (255, 0, 0), 1)  # Вісь X
+
+        # Додавання мітки нуля в центрі
+        cv2.putText(color_image, "(0, 0)", (center_x + 5, center_y - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
         # Відображення кольорового зображення для вибору точок
         cv2.imshow("Calibration Image", color_image)
